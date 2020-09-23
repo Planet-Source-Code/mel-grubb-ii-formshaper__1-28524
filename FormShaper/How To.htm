@@ -1,0 +1,93 @@
+<b><font SIZE="2">
+<h1 ALIGN="CENTER">FormShaper<br>
+How To</h1>
+</font></b><font SIZE="2">
+<h2>Introduction</h2>
+<p>Creating non-rectangular forms and controls is not something VB supports
+natively, but it IS possible.&nbsp; There are several approaches to this problem,
+and each has its appropriate uses.&nbsp; Windows has several
+API functions for generating shaped regions which can then be used to clip (or
+shape) a window, or other controls.&nbsp; The problem with these functions is
+that you are pretty much limited to rectangles, rounded rectangles, and ellipses.&nbsp;
+By combining several shapes together, you can create more complex shapes.&nbsp;
+This is fine most of the time, but what do you do when you want something a bit
+more &quot;interesting&quot;?</p>
+<p>The most flexible way to shape a window is
+by using a bitmap to actually &quot;draw&quot; the shape of the form.&nbsp; The
+traditional approach is to closely examine the bitmap at runtime, and remove any
+pixels of a certain color from the region which will be used to clip the
+window.&nbsp; This is, however, very slow in the case of even mildly complex
+shapes, and makes your application slow to start up.&nbsp; This is actually less
+of a problem with the cRegion class, as its region generation algorithm is
+pretty well optimized, but it's still not something you'd want to do each and
+every time your program is run.</p>
+<p>Which brings us to the solution.&nbsp; In order to have the flexibility of
+arbitrarily shaped windows without the overhead of recompiling the region data
+each time the program is run, we need a way to save this data off in a
+precompiled state.&nbsp; Another advantage to precompiling the regions is that you can use a
+full-quality bitmap to generate the region data, but ship a much smaller JPEG or
+GIF image along with the program, thus cutting down on finished program
+size.&nbsp; This first became an issue with me when I wanted to use a 722kb background
+image in my 120kb program.&nbsp; It seemed ludicrous that I should quadruple the
+size of my executable just to make it look good.&nbsp; I wanted to change the
+bitmap into a JPEG image to cut down the size, but that meant I couldn't use the
+image to generate the region data at runtime even if I wanted to.&nbsp; This is
+because of the way JPEGs &quot;smooth&quot; the image.&nbsp; You end up with
+blurry edges in your image, and this leads to a &quot;halo&quot; effect around
+the final clipped form or control.&nbsp;&nbsp;</p>
+<p>That is when I started
+the FormShaper project.&nbsp; I had seen projects attempt this sort of thing
+before, but didn't care for the actual implementation in any of them, so I
+decided to write my own.&nbsp; It would have a real user interface, and the
+ability to actually preview the final product.&nbsp; It would be stable, and I
+would NOT skimp on the commenting or error handling.&nbsp; It would include a
+class that could be used in other projects to provide support for shaped
+regions.</p>
+<h2>Components</h2>
+<p>The FormShaper project consists of two major pieces. The FormShaper program
+itself and the cRegion class. The FormShaper program is the interface used to pre-generate region data.</font>&nbsp; <font SIZE="2">Using the program is simple.&nbsp; Open a bitmap using the File-&gt;Open
+Picture menu item, or the Open picture toolbar button (The folder with the
+colored cactus in it).&nbsp;</p>
+<p align="center"><img border="0" src="images/fs-main.gif" width="263" height="250"></p>
+<p align="left">Once a picture has been loaded, you can select which color you
+want to be transparent using the pipette (dropper).&nbsp; You may then save the
+region data, or preview what the final form will look like using the generated
+region data.&nbsp; The second &quot;Open&quot; button (The folder with the
+cactus <u> outline</u> in it) is for loading existing region data into the
+interface.&nbsp; This can be used to demonstrate how fast loading precompiled
+regions can be, but it can also give you a chance to preview the results of
+generating a mask from one image and applying it to another, such as when you
+are using a JPEG in the final release.</p>
+</font>
+<h2>Using the region data in YOUR programs.</h2>
+<p>This is particularly easy to do with the provided cRegion class.&nbsp; It
+contains all the functionality you need to create and apply regions. </p>
+<ul>
+  <li>Apply - Applies region data to a window.</li>
+  <li>Clone - Returns an exact copy of the region object.<br>
+    This is provided because it appears that applying a region actually consumes
+    the region data itself.&nbsp; In other words, you can only use a region
+    once.</li>
+  <li>hRgn - The handle to the region data itself.</li>
+  <li>RegionFromArray - Creates a region in memory from an array of region data.<br>
+    This is not usually used from outside the class, but it COULD be used to
+    reconstitute regions from a database field.</li>
+  <li>RegionFromFile - Creates a region in memory from a region array stored as
+    a file.</li>
+  <li>RegionFromPicture - Creates a region in memory from an existing picture,
+    and a specified color to make transparent.</li>
+  <li>RegionFromResource - Creates a region in memory from region data stored in
+    the project's resource.</li>
+  <li>RegionToArray - Converts a region in memory to an array of region data.</li>
+  <li>RegionToFile - Saves a region in memory to a file.</li>
+</ul>
+<p>Good: You can use the cRegion class to create region data at runtime by using
+the RegionFromPicture method.</p>
+<p>Better: Use the FormShaper program to precompile the region data, and save it
+to a file.&nbsp; You can load this file at runtime using the RegionFromFile
+method.</p>
+<p>Best: Store the region file in the project resource, and use
+RegionFromResource to load it at runtime.</p>
+<h2>Acknowledgements</h2>
+<p>The FormShaper program uses the cCommonDialog and cRegistry classes.&nbsp;
+These are my personal versions of classes created by Steve McMahon (http://www.vbaccelerator.com)</p>
